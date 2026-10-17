@@ -3,7 +3,6 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { MediaItem } from "../types/media";
 import {
-  Sparkles,
   Mic,
   Music,
   Film,
@@ -25,6 +24,7 @@ import {
   Maximize2,
   Minimize2,
 } from "lucide-react";
+import appIcon from "../assets/app-icon.png";
 
 export type AssistantTab = "recording" | "lyrics" | "video_stt";
 export type SupportedLang = "ko-KR" | "en-US" | "ja-JP";
@@ -621,8 +621,8 @@ export const SmartAssistantModal: React.FC<SmartAssistantModalProps> = ({
           title={isMaximized ? undefined : "Drag header to move window"}
         >
           <div className="smart-header-title">
-            <div className="smart-icon-badge">
-              <Sparkles size={18} />
+            <div className="smart-icon-badge" style={{ padding: 2, overflow: "hidden" }}>
+              <img src={appIcon} alt="MHMedia" style={{ width: "100%", height: "100%", borderRadius: "var(--radius-sm)", objectFit: "contain" }} />
             </div>
             <div>
               <h3>Smart Media Assistant</h3>

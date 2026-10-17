@@ -94,6 +94,14 @@ body {
   color: #fff;
 }
 
+.brand-icon-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.4);
+  object-fit: contain;
+}
+
 .brand-title {
   font-size: 1.15rem;
   font-weight: 700;

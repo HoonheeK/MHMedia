@@ -33,6 +33,7 @@ import {
   ShieldCheck,
   BookOpen,
 } from "lucide-react";
+import appIcon from "./assets/app-icon.png";
 import "./App.css";
 
 interface RustMediaFileInfo {
@@ -806,9 +807,7 @@ function App() {
       {/* Header */}
       <header className="app-header">
         <div className="brand">
-          <div className="brand-icon">
-            <Sparkles size={18} />
-          </div>
+          <img src={appIcon} alt="MHMedia" className="brand-icon-img" />
           <span className="brand-title">MHMedia</span>
           <span className="brand-badge">Player</span>
         </div>

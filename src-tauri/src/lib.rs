@@ -93,11 +93,21 @@ fn scan_media_folder(folder_path: String) -> Result<Vec<MediaFileInfo>, String> 
     Ok(media_files)
 }
 
+use tauri::Manager;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .setup(|app| {
+            if let Some(window) = app.get_webview_window("main") {
+                if let Ok(icon) = tauri::image::Image::from_bytes(include_bytes!("../icons/128x128.png")) {
+                    let _ = window.set_icon(icon);
+                }
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             inspect_media_file,
             scan_media_folder
