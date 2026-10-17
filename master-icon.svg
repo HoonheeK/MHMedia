@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19" />
+      <stop offset="50%" stop-color="#111827" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+
+    <!-- Outer Rim Glow -->
+    <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8" stop-opacity="0.8" />
+      <stop offset="50%" stop-color="#6366f1" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.8" />
+    </linearGradient>
+
+    <!-- Vibrant Play/M Gradient -->
+    <linearGradient id="mGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" />
+      <stop offset="35%" stop-color="#6366f1" />
+      <stop offset="70%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+
+    <!-- Play Arrow Gradient -->
+    <linearGradient id="playGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#ffffff" />
+    </linearGradient>
+
+    <!-- Wave Glow -->
+    <linearGradient id="waveGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="1" />
+    </linearGradient>
+
+    <!-- Drop Shadow Filter -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#000000" flood-opacity="0.65" />
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#6366f1" flood-opacity="0.3" />
+    </filter>
+
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="30" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Canvas (Apple/Windows App Icon Standard) -->
+  <rect x="32" y="32" width="960" height="960" rx="224" fill="url(#bgGrad)" stroke="url(#rimGrad)" stroke-width="12" />
+
+  <!-- Background Ambient Glow Behind Emblem -->
+  <circle cx="512" cy="512" r="280" fill="#6366f1" opacity="0.18" filter="url(#glow)" />
+  <circle cx="580" cy="512" r="220" fill="#06b6d4" opacity="0.15" filter="url(#glow)" />
+
+  <!-- Main Emblem Group with Shadow -->
+  <g filter="url(#shadow)">
+    <!-- Stylized "M" Architecture representing Waveform + Media Structure -->
+    <!-- Left Pillar of 'M' -->
+    <rect x="236" y="320" width="76" height="384" rx="38" fill="url(#mGrad)" />
+
+    <!-- Left Diagonal to Center -->
+    <path d="M 274 358 L 478 610 C 494 630 526 630 542 610 L 746 358" 
+          fill="none" 
+          stroke="url(#mGrad)" 
+          stroke-width="76" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" />
+
+    <!-- Right Pillar of 'M' -->
+    <rect x="712" y="320" width="76" height="384" rx="38" fill="url(#mGrad)" />
+
+    <!-- Center Play Icon (The soul of Media Player) glowing in vibrant Cyan/White -->
+    <polygon points="464,410 464,614 624,512" fill="url(#playGrad)" />
+    
+    <!-- Pulse Soundwave Bars below the Play/M (smart assistant audio cue) -->
+    <circle cx="370" cy="746" r="14" fill="#818cf8" opacity="0.8" />
+    <circle cx="430" cy="746" r="14" fill="#a5b4fc" opacity="0.9" />
+    <rect x="478" y="732" width="28" height="28" rx="14" fill="#38bdf8" />
+    <circle cx="550" cy="746" r="14" fill="#06b6d4" opacity="0.9" />
+    <circle cx="610" cy="746" r="14" fill="#0284c7" opacity="0.8" />
+  </g>
+</svg>
