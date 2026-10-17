@@ -101,13 +101,16 @@ async function run() {
     const baseName = productName.toLowerCase(); // 'mhmedia'
     const abcFileName = `${baseName}.abc`;
     const zipFileName = `${baseName}_${version}.zip`;
+    const capitalZipFileName = `${productName}_${version}.zip`;
     const zipPath = path.join(releaseDir, zipFileName);
+    const capitalZipPath = path.join(releaseDir, capitalZipFileName);
     const portableZipAliasPath = path.join(releaseDir, `${productName}-portable.zip`);
 
     console.log(`🔒 암호화 ZIP 생성 중: ${path.basename(portableExePath)} → ${abcFileName} (ZIP: ${zipFileName})`);
     await createPasswordZip(portableExePath, abcFileName, zipPath);
 
-    // 복사본 MHMedia-portable.zip 생성 (홈페이지 기본 다운로드용)
+    // 복사본 MHMedia_x.x.x.zip 및 MHMedia-portable.zip 생성 (앱 이름 명시)
+    fs.copyFileSync(zipPath, capitalZipPath);
     fs.copyFileSync(zipPath, portableZipAliasPath);
 
     // 5. 릴리즈 노트 읽기
@@ -122,7 +125,7 @@ async function run() {
         }
     }
 
-    // update.json 데이터 구성
+    // update.json 데이터 구성 (mhmedia-update.json)
     const updateJson = {
         version: version,
         notes: englishNotes,
@@ -135,7 +138,7 @@ async function run() {
         },
         download: {
             installer_url: `https://mhmedia-update.marh-sw.com/${installerFileName}`,
-            latest_installer_url: `https://mhmedia-update.marh-sw.com/latest-setup.exe`,
+            latest_installer_url: `https://mhmedia-update.marh-sw.com/${productName}-setup.exe`,
             zip_url: `https://mhmedia-update.marh-sw.com/${zipFileName}`,
             zip_filename: zipFileName,
             portable_zip_url: `https://mhmedia-update.marh-sw.com/${productName}-portable.zip`,
@@ -226,7 +229,7 @@ async function run() {
         });
 
         try {
-            // 1. 버전 명시 인스톨러 exe 업로드
+            // 1. 버전 명시 인스톨러 exe 업로드 (예: MHMedia_1.0.0_x64-setup.exe)
             console.log(`☁️ Cloudflare R2 (${bucketName})에 ${installerFileName} 업로드 중...`);
             await s3.send(new PutObjectCommand({
                 Bucket: bucketName,
@@ -235,8 +238,16 @@ async function run() {
                 ContentType: 'application/x-msdownload'
             }));
 
-            // 2. latest-setup.exe 업로드 (홈페이지 기본 다운로드 링크 대응)
-            console.log(`☁️ Cloudflare R2 (${bucketName})에 latest-setup.exe 업로드 중...`);
+            // 2. 앱 이름 명시 최신 인스톨러 업로드 (예: MHMedia-setup.exe)
+            console.log(`☁️ Cloudflare R2 (${bucketName})에 ${productName}-setup.exe 업로드 중...`);
+            await s3.send(new PutObjectCommand({
+                Bucket: bucketName,
+                Key: `${productName}-setup.exe`,
+                Body: fs.createReadStream(installerPath),
+                ContentType: 'application/x-msdownload'
+            }));
+
+            // 2-1. 기존 링크 호환용 latest-setup.exe 업로드
             await s3.send(new PutObjectCommand({
                 Bucket: bucketName,
                 Key: 'latest-setup.exe',
@@ -244,16 +255,22 @@ async function run() {
                 ContentType: 'application/x-msdownload'
             }));
 
-            // 3. 버전 명시 ZIP 업로드
-            console.log(`☁️ Cloudflare R2 (${bucketName})에 ${zipFileName} 업로드 중...`);
+            // 3. 버전 명시 암호화 ZIP 업로드 (mhmedia_1.0.0.zip 및 MHMedia_1.0.0.zip)
+            console.log(`☁️ Cloudflare R2 (${bucketName})에 ${zipFileName} 및 ${capitalZipFileName} 업로드 중...`);
             await s3.send(new PutObjectCommand({
                 Bucket: bucketName,
                 Key: zipFileName,
                 Body: fs.createReadStream(zipPath),
                 ContentType: 'application/zip'
             }));
+            await s3.send(new PutObjectCommand({
+                Bucket: bucketName,
+                Key: capitalZipFileName,
+                Body: fs.createReadStream(capitalZipPath),
+                ContentType: 'application/zip'
+            }));
 
-            // 4. MHMedia-portable.zip 업로드 (홈페이지 기본 포터블 링크 대응)
+            // 4. MHMedia-portable.zip 업로드 (홈페이지 기본 포터블 링크)
             console.log(`☁️ Cloudflare R2 (${bucketName})에 ${productName}-portable.zip 업로드 중...`);
             await s3.send(new PutObjectCommand({
                 Bucket: bucketName,
@@ -262,8 +279,14 @@ async function run() {
                 ContentType: 'application/zip'
             }));
 
-            // 5. update.json 업로드 (홈페이지 및 자동 업데이트 확인용)
-            console.log(`☁️ Cloudflare R2 (${bucketName})에 update.json 업로드 중...`);
+            // 5. mhmedia-update.json 및 update.json 업로드 (TreeDiadev의 marhnote-update.json과 동일 패턴)
+            console.log(`☁️ Cloudflare R2 (${bucketName})에 mhmedia-update.json 및 update.json 업로드 중...`);
+            await s3.send(new PutObjectCommand({
+                Bucket: bucketName,
+                Key: 'mhmedia-update.json',
+                Body: JSON.stringify(updateJson, null, 2),
+                ContentType: 'application/json'
+            }));
             await s3.send(new PutObjectCommand({
                 Bucket: bucketName,
                 Key: 'update.json',
@@ -272,8 +295,9 @@ async function run() {
             }));
 
             console.log(`\n🎉 [MHMedia v${version}] 모든 릴리즈 및 R2 업로드 작업이 성공적으로 완료되었습니다!`);
-            console.log(`🔗 다운로드 주소: https://mhmedia-update.marh-sw.com/${installerFileName}`);
-            console.log(`🔗 포터블 주소: https://mhmedia-update.marh-sw.com/${zipFileName}`);
+            console.log(`🔗 인스톨러 다운로드 주소: https://mhmedia-update.marh-sw.com/${installerFileName}`);
+            console.log(`🔗 포터블 ZIP 다운로드 주소: https://mhmedia-update.marh-sw.com/${zipFileName}`);
+            console.log(`🔗 메타데이터 URL: https://mhmedia-update.marh-sw.com/mhmedia-update.json`);
         } catch (err) {
             console.error("❌ R2 업로드 중 오류 발생:", err);
             process.exit(1);

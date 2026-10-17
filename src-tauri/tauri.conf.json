@@ -30,7 +30,7 @@
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://mhmedia-update.marh-sw.com/update.json"
+        "https://mhmedia-update.marh-sw.com/mhmedia-update.json"
       ],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQ3NUI0MTNEMzU0MTZGNkYKUldSdmIwRTFQVUZiMTRPWWQ3YjFQREZXVmk0QlV2WlFySDBpVHlmcjZqeXdiWWZBVk9RUmdUT0EK"
     }
