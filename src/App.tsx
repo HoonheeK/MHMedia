@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { invoke, convertFileSrc } from "@tauri-apps/api/core";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
 import { MediaItem, RepeatMode } from "./types/media";
 import { PlayerControls } from "./components/PlayerControls";
@@ -624,6 +625,40 @@ function App() {
     return () => {
       if (unlistenFn) {
         unlistenFn();
+      }
+    };
+  }, [handleProcessDroppedPaths]);
+
+  // Handle CLI initial files and Single Instance open-files event
+  useEffect(() => {
+    // 1. Initial files on cold start (double-click when app is closed)
+    invoke<string[]>("get_initial_files")
+      .then((paths) => {
+        if (paths && paths.length > 0) {
+          handleProcessDroppedPaths(paths);
+        }
+      })
+      .catch((err) => {
+        console.warn("Failed to get initial files:", err);
+      });
+
+    // 2. Single instance open-files event (double-click when app is already running)
+    let unlistenOpenFiles: (() => void) | null = null;
+    listen<string[]>("open-files", (event) => {
+      if (event.payload && event.payload.length > 0) {
+        handleProcessDroppedPaths(event.payload);
+      }
+    })
+      .then((unlisten) => {
+        unlistenOpenFiles = unlisten;
+      })
+      .catch((err) => {
+        console.warn("Failed to listen for open-files event:", err);
+      });
+
+    return () => {
+      if (unlistenOpenFiles) {
+        unlistenOpenFiles();
       }
     };
   }, [handleProcessDroppedPaths]);

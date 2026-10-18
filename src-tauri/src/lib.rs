@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
+use std::sync::Mutex;
+use tauri::{Emitter, Manager, State};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MediaFileInfo {
@@ -17,6 +19,32 @@ fn classify_media(ext: &str) -> Option<&'static str> {
         "mp4" | "webm" | "mkv" | "mov" | "avi" | "wmv" | "flv" | "m4v" => Some("video"),
         _ => None,
     }
+}
+
+fn extract_valid_paths(args: &[String]) -> Vec<String> {
+    args.iter()
+        .skip(1)
+        .filter_map(|arg| {
+            // 따옴표나 공백 트림
+            let trimmed = arg.trim_matches('"');
+            let p = Path::new(trimmed);
+            if p.exists() {
+                Some(trimmed.to_string())
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
+struct InitialFiles(Mutex<Vec<String>>);
+
+#[tauri::command]
+fn get_initial_files(state: State<'_, InitialFiles>) -> Vec<String> {
+    let mut files = state.0.lock().unwrap();
+    let result = files.clone();
+    files.clear();
+    result
 }
 
 #[tauri::command]
@@ -93,13 +121,26 @@ fn scan_media_folder(folder_path: String) -> Result<Vec<MediaFileInfo>, String> 
     Ok(media_files)
 }
 
-use tauri::Manager;
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let raw_args: Vec<String> = std::env::args().collect();
+    let initial_paths = extract_valid_paths(&raw_args);
+
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            let valid_paths = extract_valid_paths(&args);
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.unminimize();
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+            if !valid_paths.is_empty() {
+                let _ = app.emit("open-files", valid_paths);
+            }
+        }))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .manage(InitialFiles(Mutex::new(initial_paths)))
         .setup(|app| {
             if let Some(window) = app.get_webview_window("main") {
                 if let Ok(icon) = tauri::image::Image::from_bytes(include_bytes!("../icons/128x128.png")) {
@@ -109,6 +150,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            get_initial_files,
             inspect_media_file,
             scan_media_folder
         ])

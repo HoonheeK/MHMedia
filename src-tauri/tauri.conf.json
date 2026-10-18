@@ -23,7 +23,9 @@
       "csp": null,
       "assetProtocol": {
         "enable": true,
-        "scope": ["**"]
+        "scope": [
+          "**"
+        ]
       }
     }
   },
@@ -38,13 +40,44 @@
   "bundle": {
     "active": true,
     "createUpdaterArtifacts": true,
-    "targets": ["nsis"],
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
+    ],
+    "fileAssociations": [
+      {
+        "ext": [
+          "mp4",
+          "mkv",
+          "avi",
+          "mov",
+          "wmv",
+          "webm"
+        ],
+        "name": "Video File",
+        "description": "MHMedia Video",
+        "role": "Viewer"
+      },
+      {
+        "ext": [
+          "mp3",
+          "wav",
+          "flac",
+          "ogg",
+          "m4a",
+          "wma",
+          "aac"
+        ],
+        "name": "Audio File",
+        "description": "MHMedia Audio",
+        "role": "Viewer"
+      }
     ]
   }
 }
