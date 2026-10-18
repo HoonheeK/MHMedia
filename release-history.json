@@ -1,16 +1,31 @@
 [
   {
+    "version": "1.0.2",
+    "date": "2026-10-18",
+    "notes": {
+      "ko": [
+        "Compact 모드 추가"
+      ],
+      "en": [
+        "Add compact mode"
+      ],
+      "ja": [
+        "Compactモードの追加"
+      ]
+    }
+  },
+  {
     "version": "1.0.1",
     "date": "2026-10-18",
     "notes": {
       "ko": [
-        "File Association added"
+        "MHMedia Version 1.0.1 Released!"
       ],
       "en": [
-        "File Association added"
+        "MHMedia Version 1.0.1 Released!"
       ],
       "ja": [
-        "ファイルの関連付けが追加されました"
+        "MHMedia バージョン 1.0.1 がリリースされました!"
       ]
     }
   },

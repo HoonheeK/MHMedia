@@ -14,6 +14,7 @@ export const ShortcutsModal: React.FC<ShortcutsModalProps> = ({ isOpen, onClose 
     { key: "← / →", desc: "Seek 5s Backward / Forward" },
     { key: "↑ / ↓", desc: "Volume Up / Down (5%)" },
     { key: "M", desc: "Toggle Mute" },
+    { key: "Ctrl + M", desc: "Toggle Compact Mode (Mini Player)" },
     { key: "F", desc: "Toggle Fullscreen" },
     { key: "L", desc: "Toggle Playlist Sidebar" },
     { key: "N", desc: "Next Track" },

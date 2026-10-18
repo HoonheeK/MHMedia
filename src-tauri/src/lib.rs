@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
 use std::sync::Mutex;
-use tauri::{Emitter, Manager, State};
+use tauri::{Emitter, LogicalSize, Manager, Size, State, WebviewWindow};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MediaFileInfo {
@@ -25,7 +25,6 @@ fn extract_valid_paths(args: &[String]) -> Vec<String> {
     args.iter()
         .skip(1)
         .filter_map(|arg| {
-            // 따옴표나 공백 트림
             let trimmed = arg.trim_matches('"');
             let p = Path::new(trimmed);
             if p.exists() {
@@ -38,6 +37,28 @@ fn extract_valid_paths(args: &[String]) -> Vec<String> {
 }
 
 struct InitialFiles(Mutex<Vec<String>>);
+struct SavedWindowSize(Mutex<Option<(f64, f64)>>);
+
+#[tauri::command]
+fn set_compact_mode(window: WebviewWindow, state: State<'_, SavedWindowSize>, enable: bool) -> Result<(), String> {
+    if enable {
+        if let Ok(size) = window.inner_size() {
+            let scale_factor = window.scale_factor().unwrap_or(1.0);
+            let logical_w = size.width as f64 / scale_factor;
+            let logical_h = size.height as f64 / scale_factor;
+            let mut saved = state.0.lock().unwrap();
+            *saved = Some((logical_w, logical_h));
+        }
+        let _ = window.set_always_on_top(true);
+        let _ = window.set_size(Size::Logical(LogicalSize { width: 420.0, height: 260.0 }));
+    } else {
+        let _ = window.set_always_on_top(false);
+        let saved = { *state.0.lock().unwrap() };
+        let (target_w, target_h) = saved.unwrap_or((1120.0, 740.0));
+        let _ = window.set_size(Size::Logical(LogicalSize { width: target_w, height: target_h }));
+    }
+    Ok(())
+}
 
 #[tauri::command]
 fn get_initial_files(state: State<'_, InitialFiles>) -> Vec<String> {
@@ -141,6 +162,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(InitialFiles(Mutex::new(initial_paths)))
+        .manage(SavedWindowSize(Mutex::new(None)))
         .setup(|app| {
             if let Some(window) = app.get_webview_window("main") {
                 if let Ok(icon) = tauri::image::Image::from_bytes(include_bytes!("../icons/128x128.png")) {
@@ -152,7 +174,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_initial_files,
             inspect_media_file,
-            scan_media_folder
+            scan_media_folder,
+            set_compact_mode
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

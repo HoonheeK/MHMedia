@@ -33,6 +33,8 @@ import {
   Info,
   ShieldCheck,
   BookOpen,
+  Minimize2,
+  Maximize2,
 } from "lucide-react";
 import appIcon from "./assets/app-icon.png";
 import "./App.css";
@@ -63,6 +65,7 @@ function App() {
   const [isShuffle, setIsShuffle] = useState<boolean>(false);
   const [isPlaylistOpen, setIsPlaylistOpen] = useState<boolean>(true);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState<boolean>(false);
+  const [isCompact, setIsCompact] = useState<boolean>(false);
 
   // Smart Assistant Modal state
   const [isSmartModalOpen, setIsSmartModalOpen] = useState<boolean>(false);
@@ -100,11 +103,22 @@ function App() {
   const showOsd = useCallback((icon: React.ReactNode, text: string) => {
     if (osdTimerRef.current) {
       window.clearTimeout(osdTimerRef.current);
+      osdTimerRef.current = null;
     }
     setOsd({ icon, text });
     osdTimerRef.current = window.setTimeout(() => {
       setOsd(null);
-    }, 800);
+      osdTimerRef.current = null;
+    }, 700);
+  }, []);
+
+  // Clean up OSD timer on unmount
+  useEffect(() => {
+    return () => {
+      if (osdTimerRef.current) {
+        window.clearTimeout(osdTimerRef.current);
+      }
+    };
   }, []);
 
   const appContainerRef = useRef<HTMLDivElement | null>(null);
@@ -197,12 +211,12 @@ function App() {
     if (isPlaying) {
       el.pause();
       setIsPlaying(false);
-      showOsd(<Pause size={36} className="osd-icon" />, "일시정지");
+      showOsd(<Pause size={36} className="osd-icon" />, "Pause");
     } else {
       el.play()
         .then(() => {
           setIsPlaying(true);
-          showOsd(<Play size={36} className="osd-icon" />, "재생");
+          showOsd(<Play size={36} className="osd-icon" />, "Play");
         })
         .catch((err) => console.error("Play error:", err));
     }
@@ -339,6 +353,24 @@ function App() {
       return next;
     });
   }, [showOsd]);
+
+  // Toggle Compact Mode
+  const toggleCompactMode = useCallback(async () => {
+    try {
+      const next = !isCompact;
+      setIsCompact(next);
+      if (next) {
+        setIsPlaylistOpen(false);
+      }
+      await invoke("set_compact_mode", { enable: next });
+      showOsd(
+        <Minimize2 size={36} className="osd-icon" />,
+        next ? "Compact Mode" : "Standard Mode"
+      );
+    } catch (err) {
+      console.error("Failed to toggle compact mode:", err);
+    }
+  }, [isCompact, showOsd]);
 
   // Fullscreen toggle
   const toggleFullscreen = useCallback(() => {
@@ -696,7 +728,12 @@ function App() {
           resetIdleTimer();
           break;
         case "KeyM":
-          toggleMute();
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            toggleCompactMode();
+          } else {
+            toggleMute();
+          }
           resetIdleTimer();
           break;
         case "KeyF":
@@ -734,6 +771,7 @@ function App() {
     playPrev,
     cycleRepeatMode,
     isFullscreen,
+    toggleCompactMode,
     resetIdleTimer,
   ]);
 
@@ -814,8 +852,8 @@ function App() {
     <div
       ref={appContainerRef}
       className={`app-container ${isFullscreen ? "is-fullscreen" : ""} ${
-        hideControls ? "hide-controls" : ""
-      }`}
+        isCompact ? "is-compact" : ""
+      } ${hideControls ? "hide-controls" : ""}`}
       onMouseMove={handleMouseMove}
       onDragOver={(e) => {
         e.preventDefault();
@@ -839,25 +877,54 @@ function App() {
         setIsDraggingFiles(false);
       }}
     >
-      {/* Header */}
-      <header className="app-header">
-        <div className="brand">
-          <img src={appIcon} alt="MHMedia" className="brand-icon-img" />
-          <span className="brand-title">MHMedia</span>
-          <span className="brand-badge">Player</span>
+      {/* Compact Mode Mini Top Bar */}
+      {isCompact && (
+        <div className="compact-top-bar" data-tauri-drag-region>
+          <div className="compact-drag-title" data-tauri-drag-region>
+            <img src={appIcon} alt="" className="compact-mini-icon" data-tauri-drag-region />
+            <span className="compact-title-text" data-tauri-drag-region>
+              {currentTrack ? currentTrack.name : "MHMedia"}
+            </span>
+          </div>
+          <div className="compact-top-actions">
+            <button
+              className="compact-action-btn"
+              title="Restore standard view (Ctrl+M)"
+              onClick={toggleCompactMode}
+            >
+              <Maximize2 size={13} />
+            </button>
+          </div>
         </div>
+      )}
 
-        <div className="header-actions">
-          <button
-            className="btn btn-secondary"
-            title="Smart Media Assistant (STT / Lyrics / Subtitles)"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenSmartModal();
-            }}
-          >
-            <Sparkles size={15} color="#818cf8" /> Smart Assistant
-          </button>
+      {/* Header */}
+      {!isFullscreen && !isCompact && (
+        <header className="app-header">
+          <div className="brand">
+            <img src={appIcon} alt="MHMedia" className="brand-icon-img" />
+            <span className="brand-title">MHMedia</span>
+            <span className="brand-badge">Player</span>
+          </div>
+
+          <div className="header-actions">
+            <button
+              className="btn btn-secondary"
+              title="Compact Mode / Mini Player (Ctrl+M)"
+              onClick={toggleCompactMode}
+            >
+              <Minimize2 size={15} /> Compact
+            </button>
+            <button
+              className="btn btn-secondary"
+              title="Smart Media Assistant (STT / Lyrics / Subtitles)"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenSmartModal();
+              }}
+            >
+              <Sparkles size={15} color="#818cf8" /> Smart Assistant
+            </button>
           <button className="btn btn-secondary" onClick={handleOpenFolder}>
             <FolderOpen size={15} /> Open Folder
           </button>
@@ -926,6 +993,7 @@ function App() {
           </div>
         </div>
       </header>
+      )}
 
       {/* Main Workspace */}
       <main className="app-main">
@@ -934,33 +1002,6 @@ function App() {
           className="viewer-section"
           onWheel={handleViewerWheel}
         >
-          {/* Smart Action Suggestion Chip */}
-          {!isFullscreen && currentTrack && (
-            <div
-              className="smart-suggestion-banner"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {(() => {
-                const suggestion = getSuggestedAction();
-                if (!suggestion) return null;
-                return (
-                  <button
-                    className="smart-chip-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      handleOpenSmartModal(suggestion.tab);
-                    }}
-                    title="Click to run recommended smart feature"
-                  >
-                    <span className="smart-pulse-dot" />
-                    {suggestion.icon}
-                    <span>{suggestion.label}</span>
-                  </button>
-                );
-              })()}
-            </div>
-          )}
           {!currentTrack ? (
             <div className="empty-state">
               <div className="empty-icon-halo">
@@ -1058,6 +1099,7 @@ function App() {
 
       {/* Bottom Controls Bar (Translucent Overlay in Fullscreen) */}
       <div
+        className="player-controls-wrapper"
         onMouseEnter={() => {
           isHoveringControlsRef.current = true;
           setHideControls(false);
@@ -1078,6 +1120,8 @@ function App() {
           repeatMode={repeatMode}
           isShuffle={isShuffle}
           isPlaylistOpen={isPlaylistOpen}
+          isCompact={isCompact}
+          onToggleCompact={toggleCompactMode}
           onTogglePlay={togglePlay}
           onSeek={handleSeek}
           onPrev={playPrev}

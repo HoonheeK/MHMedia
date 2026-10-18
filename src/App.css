@@ -551,18 +551,25 @@ body {
   background: rgba(239, 68, 68, 0.1);
 }
 
-/* Bottom Player Controls Bar */
+/* Bottom Player Controls Wrapper & Bar */
+.player-controls-wrapper {
+  width: 100%;
+  flex-shrink: 0;
+  z-index: 20;
+}
+
 .player-bar {
-  height: 96px;
-  min-height: 96px;
+  min-height: 84px;
   background: var(--bg-glass);
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  padding: 10px 24px 14px 24px;
+  padding: 8px 24px 12px 24px;
   z-index: 10;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
   transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease;
 }
 
@@ -575,19 +582,24 @@ body {
   display: none;
 }
 
-.app-container.is-fullscreen .player-bar {
+.app-container.is-fullscreen .player-controls-wrapper {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.app-container.is-fullscreen .player-bar {
   /* 높은 투명도 글래스모피즘 오버레이 */
-  background: rgba(10, 14, 23, 0.45);
+  background: rgba(10, 14, 23, 0.65);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.5);
-  z-index: 50;
-  padding: 12px 32px 18px 32px;
+  padding: 10px 32px 14px 32px;
+  pointer-events: auto;
 }
 
 /* 마우스 유휴(Idle) 시 부드럽게 숨김 */
@@ -607,10 +619,10 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(15, 20, 32, 0.75);
+  background: rgba(15, 20, 32, 0.82);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   padding: 18px 28px;
   border-radius: var(--radius-lg);
   display: flex;
@@ -621,7 +633,7 @@ body {
   pointer-events: none;
   z-index: 60;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-  animation: osdPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: osdFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .osd-icon {
@@ -634,14 +646,22 @@ body {
   letter-spacing: -0.2px;
 }
 
-@keyframes osdPop {
+@keyframes osdFade {
   0% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.85);
   }
-  100% {
+  15% {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
   }
 }
 
@@ -654,14 +674,24 @@ body {
 }
 
 .time-label {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
   font-family: var(--font-mono);
-  color: var(--text-secondary);
-  min-width: 44px;
+  color: var(--text-primary);
+  min-width: 48px;
+  line-height: 1;
 }
 
 .time-label.current {
   text-align: right;
+  color: var(--accent-cyan);
+}
+
+.info-time-highlight {
+  font-family: var(--font-mono);
+  color: #cbd5e1;
+  font-weight: 600;
+  margin-left: 2px;
 }
 
 .seekbar-wrapper {
@@ -1703,6 +1733,128 @@ body {
 @keyframes spinAnim {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   Compact Mode (Mini Player) Styles
+   ========================================================================== */
+
+.compact-top-bar {
+  height: 28px;
+  min-height: 28px;
+  background: rgba(10, 13, 20, 0.9);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 10px;
+  user-select: none;
+  z-index: 60;
+  -webkit-app-region: drag;
+}
+
+.compact-drag-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+  -webkit-app-region: drag;
+}
+
+.compact-mini-icon {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.compact-title-text {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compact-top-actions {
+  display: flex;
+  align-items: center;
+  -webkit-app-region: no-drag;
+}
+
+.compact-action-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.compact-action-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+/* Compact Container Overrides */
+.app-container.is-compact .playlist-panel {
+  display: none !important;
+}
+
+.app-container.is-compact .player-bar {
+  min-height: 56px;
+  padding: 4px 14px 6px 14px;
+  gap: 4px;
+  background: rgba(15, 20, 32, 0.9);
+}
+
+.app-container.is-compact .left-info {
+  display: none;
+}
+
+.app-container.is-compact .btn-play-pause {
+  width: 32px;
+  height: 32px;
+}
+
+.app-container.is-compact .btn-play-pause svg {
+  width: 15px;
+  height: 15px;
+}
+
+.app-container.is-compact .center-buttons {
+  gap: 8px;
+}
+
+.app-container.is-compact .right-features {
+  width: auto;
+  gap: 8px;
+}
+
+.app-container.is-compact .volume-slider {
+  width: 50px;
+}
+
+.app-container.is-compact .speed-badge {
+  display: none;
+}
+
+.app-container.is-compact .time-label {
+  font-size: 0.7rem;
+  min-width: 36px;
+}
+
+.app-container.is-compact .audio-centerpiece {
+  transform: scale(0.65);
+  margin-top: -10px;
 }
 
 

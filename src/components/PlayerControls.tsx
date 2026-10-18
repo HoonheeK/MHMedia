@@ -14,6 +14,7 @@ import {
   Volume1,
   VolumeX,
   Maximize2,
+  Minimize2,
   ListMusic,
   Keyboard,
   Music,
@@ -44,6 +45,8 @@ interface PlayerControlsProps {
   onToggleFullscreen: () => void;
   onTogglePlaylist: () => void;
   onOpenShortcuts: () => void;
+  isCompact?: boolean;
+  onToggleCompact?: () => void;
 }
 
 export const PlayerControls: React.FC<PlayerControlsProps> = ({
@@ -70,6 +73,8 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
   onToggleFullscreen,
   onTogglePlaylist,
   onOpenShortcuts,
+  isCompact = false,
+  onToggleCompact,
 }) => {
   const seekbarRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -211,7 +216,10 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
                 </span>
                 <span className="info-type">
                   {currentTrack.extension.toUpperCase()} ·{" "}
-                  {currentTrack.mediaType === "video" ? "Video" : "Audio"}
+                  {currentTrack.mediaType === "video" ? "Video" : "Audio"} ·{" "}
+                  <strong className="info-time-highlight">
+                    {formatTime(currentTime)} / {formatTime(validDuration)}
+                  </strong>
                 </span>
               </div>
             </>
@@ -341,6 +349,16 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
           >
             <ListMusic size={17} />
           </button>
+
+          {onToggleCompact && (
+            <button
+              className={`btn-icon-only ${isCompact ? "active" : ""}`}
+              title={isCompact ? "Standard mode (Ctrl+M)" : "Compact mode / Mini player (Ctrl+M)"}
+              onClick={onToggleCompact}
+            >
+              <Minimize2 size={16} />
+            </button>
+          )}
 
           <button
             className="btn-icon-only"
