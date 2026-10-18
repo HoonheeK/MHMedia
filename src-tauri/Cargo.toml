@@ -1,6 +1,6 @@
 [package]
 name = "MHMedia"
-version = "1.0.0"
+version = "1.0.1"
 description = "MHMedia Player by Marh Software"
 authors = ["HoonheeK"]
 edition = "2024"

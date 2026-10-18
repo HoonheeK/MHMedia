@@ -1,5 +1,20 @@
 [
   {
+    "version": "1.0.1",
+    "date": "2026-10-18",
+    "notes": {
+      "ko": [
+        "File Association added"
+      ],
+      "en": [
+        "File Association added"
+      ],
+      "ja": [
+        "ファイルの関連付けが追加されました"
+      ]
+    }
+  },
+  {
     "version": "1.0.0",
     "date": "2026-10-18",
     "notes": {
